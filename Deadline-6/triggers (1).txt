@@ -1,0 +1,100 @@
+#Trigger 1: This trigger, named update_inventory_and_check_stock, is designed to automatically update the inventory table and perform a stock check whenever a new entry is made in the ShoppingCart table.
+
+DELIMITER //
+
+CREATE TRIGGER update_inventory_and_check_stock
+AFTER INSERT ON ShoppingCart
+FOR EACH ROW
+BEGIN
+    DECLARE available_quantity INT;
+    
+    -- Get the available quantity of the product in the inventory
+    SELECT product_quantity INTO available_quantity
+    FROM Inventory
+    WHERE product_id = NEW.product_id;
+    
+    -- Check if the quantity added in the shopping cart exceeds the available quantity in inventory
+    IF NEW.cartitem_quantity > available_quantity THEN
+        -- Raise an error message indicating insufficient stock
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Insufficient stock. Unable to add item to the shopping cart.';
+    ELSE
+        -- Update the total amount of product quantity in the inventory
+        UPDATE Inventory
+        SET product_quantity = product_quantity - NEW.cartitem_quantity
+        WHERE product_id = NEW.product_id;
+    END IF;
+END;
+
+//
+
+DELIMITER ;
+SET SQL_SAFE_UPDATES = 0;
+
+
+INSERT INTO ShoppingCart (shopping_cart_id, cartitem_quantity, customer_id, product_id)
+VALUES (13, 8, 10, 101);
+INSERT INTO ShoppingCart (shopping_cart_id, cartitem_quantity, customer_id, product_id)
+VALUES (14, 2, 10, 101);
+
+CREATE TABLE VendorNotifications (
+    notification_id INT AUTO_INCREMENT PRIMARY KEY,
+    message VARCHAR(255) NOT NULL,
+    notification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    vendor_id INT NOT NULL,
+    FOREIGN KEY (vendor_id) REFERENCES Vendor(vendor_id)
+);
+
+#Trigger 2:This trigger, named notify_vendor_low_inventory, is designed to automatically notify vendors when the inventory of their products falls below a certain threshold.
+
+DELIMITER //
+CREATE TRIGGER notify_vendor_low_inventory
+AFTER UPDATE ON Inventory
+FOR EACH ROW
+BEGIN
+    DECLARE min_threshold INT;
+    DECLARE v_vendor_id INT; -- Variable to store the vendor_id
+    
+    SET min_threshold = 10; -- Set your minimum inventory threshold
+
+    -- Retrieve vendor_id associated with the product in the inventory
+    SELECT vendor_id INTO v_vendor_id
+    FROM Product
+    WHERE product_id = NEW.product_id;
+     
+    IF NEW.product_quantity < min_threshold THEN
+        -- Insert into VendorNotifications table
+        INSERT INTO VendorNotifications (message, notification_date, vendor_id)
+        VALUES (CONCAT('Inventory for product ', NEW.product_id, ' is low. Please restock.'), NOW(), v_vendor_id);
+    END IF;
+END;
+//
+DELIMITER ;
+
+insert into inventory
+(product_quantity,	product_id, category_id)
+values
+(79,	110,10);
+
+UPDATE Inventory
+SET product_quantity = 5 -- Set product_quantity below the threshold
+WHERE product_id = 110;
+
+
+# Trigger 3 : To add an entry to the ShoppingCart As soon as a customer registers 
+
+
+DROP TRIGGER IF EXISTS create_cart;
+
+DELIMITER $$
+CREATE TRIGGER create_cart AFTER INSERT ON CUSTOMER
+FOR EACH ROW
+BEGIN
+    DECLARE cart INT;
+    SELECT MAX(shopping_cart_id) + 1 INTO cart FROM SHOPPINGCART;
+    IF cart IS NULL THEN
+        SET cart = 1; -- If the shopping cart table is empty, set cart to 1
+    END IF;
+    INSERT INTO SHOPPINGCART VALUES (cart, 0, NEW.customer_id, null);
+END$$
+DELIMITER ;

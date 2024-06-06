@@ -1,0 +1,132 @@
+
+
+*******************************************************************************************************************
+Conflicting pair of transactions:--
+
+-- Transaction T1: Customer A purchasing a laptop and headphones
+START TRANSACTION;
+
+-- Step 1: Inserting a new shopping order for Customer A
+INSERT INTO ShoppingOrder (orderId, order_date, delivery_address, customer_id)
+VALUES (12, NOW(), '123 Main St', 1); -- Assuming customer_id 1 is Customer A
+
+-- Step 2: Updating inventory for the laptop and headphones
+UPDATE Inventory
+SET product_quantity = product_quantity - 1
+WHERE product_id IN (101, 102); -- Assuming product_id 101 is the laptop and 102 is the headphones
+
+-- Step 3: Deleting items from Customer A's shopping cart
+DELETE FROM ShoppingCart
+WHERE customer_id = 1; -- Assuming customer_id 1 is Customer A
+
+COMMIT;
+
+
+-- Transaction T2: Customer B purchasing the same laptop and a TV
+START TRANSACTION;
+
+-- Step 1: Inserting a new shopping order for Customer B
+INSERT INTO ShoppingOrder (orderId, order_date, delivery_address, customer_id)
+VALUES (13, NOW(), '456 Elm St', 2); -- Assuming customer_id 2 is Customer B
+
+-- Step 2: Updating inventory for the laptop and TV
+UPDATE Inventory
+SET product_quantity = product_quantity - 1
+WHERE product_id IN (101, 103); -- Assuming product_id 101 is the laptop and 103 is the TV
+
+-- Step 3: Deleting items from Customer B's shopping cart
+DELETE FROM ShoppingCart
+WHERE customer_id = 2; -- Assuming customer_id 2 is Customer B
+
+COMMIT;
+
+
+Way to test it::
+
+SET autocommit= OFF;
+
+In two different instances and run in both instances, The two transactions simultaneously without the COMMIT statement.
+
+*******************************************************************************************************************
+
+Non-conflicting pair of transactions:--
+
+-- Transaction T3: Customer A purchasing a laptop and leaving feedback
+START TRANSACTION;
+
+-- Step 1: Inserting a new shopping order for Customer A
+INSERT INTO ShoppingOrder (orderId, order_date, delivery_address, customer_id)
+VALUES (14, NOW(), '789 Oak St', 1); -- Assuming customer_id 1 is Customer A
+
+-- Step 2: Updating inventory for the laptop
+UPDATE Inventory
+SET product_quantity = product_quantity - 1
+WHERE product_id = 101; -- Assuming product_id 101 is the laptop
+
+-- Step 3: Deleting the laptop from Customer A's shopping cart
+DELETE FROM ShoppingCart
+WHERE customer_id = 1 AND product_id = 101; -- Assuming customer_id 1 is Customer A
+
+-- Step 4: Inserting feedback for the laptop purchased by Customer A
+INSERT INTO Feedback (feedback_id, rating_value, comments, customer_id, product_id)
+VALUES (11, 5, 'Great laptop, fast delivery!', 1, 101); -- Assuming product_id 101 is the laptop and customer_id 1 is Customer A
+
+COMMIT;
+
+
+-- Transaction T4: Customer B purchasing a camera and leaving feedback
+START TRANSACTION;
+
+-- Step 1: Inserting a new shopping order for Customer B
+INSERT INTO ShoppingOrder (orderId, order_date, delivery_address, customer_id)
+VALUES (15, NOW(), '101 Pine St', 2); -- Assuming customer_id 2 is Customer B
+
+-- Step 2: Updating inventory for the camera
+UPDATE Inventory
+SET product_quantity = product_quantity - 1
+WHERE product_id = 106; -- Assuming product_id 106 is the camera
+
+-- Step 3: Deleting the camera from Customer B's shopping cart
+DELETE FROM ShoppingCart
+WHERE customer_id = 2 AND product_id = 106; -- Assuming customer_id 2 is Customer B
+
+-- Step 4: Inserting feedback for the camera purchased by Customer B
+INSERT INTO Feedback (feedback_id, rating_value, comments, customer_id, product_id)
+VALUES (12, 4, 'Good camera, but could be better.', 2, 106); -- Assuming product_id 106 is the camera and customer_id 2 is Customer B
+
+COMMIT;
+
+**************************************************************************************************************
+
+Final pair of non-conflicting transactions
+
+-- Transaction T5: Customer A updating delivery address and paying for order
+START TRANSACTION;
+
+-- Step 1: Updating delivery address for Customer A's order
+UPDATE ShoppingOrder
+SET delivery_address = '456 Maple St'
+WHERE orderId = 15; -- Assuming orderId 15 corresponds to Customer A's order
+
+-- Step 2: Updating payment information for Customer A's order
+UPDATE Payment
+SET payment_amount = 8500
+WHERE payment_id = 11; -- Assuming payment_id 11 corresponds to Customer A's payment
+
+COMMIT;
+
+
+-- Transaction T6: Customer B adding a product to their shopping cart and applying a discount
+START TRANSACTION;
+
+-- Step 1: Adding a new product to Customer B's shopping cart
+INSERT INTO ShoppingCart (shopping_cart_id, cartitem_quantity, customer_id, product_id)
+VALUES (11, 1, 2, 107); -- Assuming product_id 107 is the new product and customer_id 2 is Customer B
+
+-- Step 2: Applying a discount to Customer B's order
+UPDATE Discount
+SET discount_rate = '20%'
+WHERE discount_id = 13; -- Assuming discount_id 13 corresponds to the discount applied by Customer B
+
+COMMIT;
+
