@@ -1,0 +1,410 @@
+ create DATABASE if not exists temp;
+ use temp;
+ 
+ create table if not exists Admin1(
+    admin_id int not null,
+    admin_email VARCHAR(250) not null,
+    admin_username VARCHAR(250) not null,
+    primary key(admin_id)
+);
+ 
+create table if not exists Customer(
+    customer_id int not null,
+    first_name VARCHAR(250) not NULL,
+    middle_name VARCHAR(250),
+    last_name VARCHAR(250) ,
+	phone_number bigint not null,
+    email_id VARCHAR(200) not NULL,
+    age int not null,
+    street_no int not null,
+    street_name VARCHAR(200) not NULL,
+    house_no VARCHAR(200) not NULL,
+    pin_code VARCHAR(200) not NULL,
+    city VARCHAR(20) not NULL,
+    state_name VARCHAR(150) not NULL,
+    admin_id int not null,
+    primary key(customer_id),
+    FOREIGN KEY (admin_id) REFERENCES Admin1(admin_id)
+
+);
+
+create table  if not exists Vendor(
+    vendor_id int not null,
+    vendor_name VARCHAR(150) not null,
+    vendor_age int not null,
+    phone_number bigint not null,
+    vendor_email VARCHAR(200),
+    primary key(vendor_id),
+    admin_id int not null,
+    FOREIGN KEY (admin_id) REFERENCES Admin1(admin_id)
+);
+
+create table  if not exists ShoppingOrder(
+    orderId int not null,
+    
+    order_date Date,
+    delivery_address VARCHAR(200),
+    primary key(orderId),
+    customer_id int,
+    
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+);
+
+create table if not exists DeliveryPerson(
+    person_id int not null,
+    del_name VARCHAR(250) not null,
+    del_speed int not NULL,
+    phone_number bigint not null,
+    primary key(person_id),
+    orderId int not null,
+    FOREIGN KEY (orderId) REFERENCES ShoppingOrder(orderId)
+);
+
+create table if not exists  AuthenticationCredentials(
+    login_id int not null,
+    passcode VARCHAR(100) not NULL,
+    primary key(login_id),
+    person_id int,
+    customer_id int,
+    admin_id int not null,
+    vendor_id int,
+    FOREIGN KEY (vendor_id) REFERENCES vendor(vendor_id),
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (person_id) REFERENCES DeliveryPerson(person_id),
+    FOREIGN KEY (admin_id) REFERENCES Admin1(admin_id)
+);
+
+create table  if not exists ProductCategory(
+    category_id int not null,
+    category_name VARCHAR(300),
+    primary key(category_id)
+);
+
+create table  if not exists Inventory(
+    product_quantity int not null,
+    product_id int  not null,
+    category_id int not null,
+    FOREIGN KEY (category_id) REFERENCES ProductCategory(category_id)
+);
+
+create table if not exists  Discount(
+    discount_id int not null,
+    discount_name VARCHAR(150),
+    discount_rate VARCHAR(200) not null,
+    discount_description text,
+    discount_start date,
+    discount_end date not null,
+    primary key(discount_id),
+    orderId int not null UNIQUE,
+    admin_id int not null,
+    FOREIGN KEY (orderId) REFERENCES ShoppingOrder(orderId),
+    FOREIGN KEY (admin_id) REFERENCES Admin1(admin_id)
+);
+
+create table if not exists  Product(
+    product_id int not null,
+    primary key(product_id),
+    product_description text,
+    product_name VARCHAR(200) not null,
+    product_price int not null,
+    category_id int,
+    vendor_id int not null,
+    FOREIGN KEY (category_id) REFERENCES ProductCategory(category_id),
+    FOREIGN KEY (vendor_id) REFERENCES Vendor(vendor_id)
+);
+
+
+create table  if not exists Feedback(
+    feedback_id int  not null,
+    rating_value VARCHAR(300) not null,
+    -- product id as a foreign key
+    comments text,
+    feedback_date Date,
+    primary key(feedback_id),
+    customer_id int,
+    product_id int,
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (product_id) REFERENCES Product(product_id)
+);
+
+create table  if not exists ShoppingCart(
+    shopping_cart_id int not null,
+    cartitem_quantity int not null,
+    -- product id foreign key
+    Primary key(shopping_cart_id),
+    customer_id int,
+    product_id int,
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (product_id) REFERENCES Product(product_id)
+);
+
+create table  if not exists PaymentType(
+    payment_type_id int not null,
+    payment_name VARCHAR(200),
+    primary key(payment_type_id)
+);
+
+create table  if not exists Payment(
+    payment_id int not null,
+    -- customer id foreign key
+    -- payment type id foreign key
+    payment_amount int not null,
+    expirydate Date,
+    Primary key(payment_id),
+    payment_type_id int,
+    customer_id int,
+    FOREIGN KEY (payment_type_id) REFERENCES PaymentType(payment_type_id),
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id)
+);
+
+create table if not exists OrderStatus(
+    order_id int not null,
+    status1 VARCHAR(100),
+    customer_id int not null,
+    vendor_id int not null,
+    foreign key(customer_id) REFERENCES Customer(customer_id),
+    foreign key(vendor_id) REFERENCES Vendor(vendor_id)
+);
+
+select*from admin1;
+insert into admin1
+(admin_id, admin_email, admin_username)
+values
+(1, "abc&gmail.com", "supervisor");
+
+select*from customer;
+insert into customer
+(customer_id ,first_name ,middle_name ,last_name  ,phone_number ,email_id ,age ,street_no ,street_name ,house_no ,pin_code ,city ,state_name ,admin_id)
+values
+(1,	"Kellen",	"Mamwell",	"Waren",	1234567890,	"kwaren0@hexun.com",	2,	5859,	"Di Loreto",	"19105",	"13533",	"Nevinnomyssk",	"Haryana",	1),
+(2,	"Pansie",	"Pristnor",	"Tabord",	2345678901,	"ptabord1@ning.com",		53,	10,	"boyd", "6561",	"11403",	"Fonseca",	"Manipur",	1),
+(3,	"Maury",	"Tarbox",	"Ramsdell",	3456789012,	"mramsdell2@privacy.gov.au",	52,	7673,	"Morning",	"201",	"13525",	"Rungis",	"Rajasthan",	1),
+(4,	"Ileane",	"Saffon",	"Ferneley",	4567890123,	"iferneley3@chronoengine.com",	32,	892,	"John Wall",	"2117",	"12009",	"Jinglou",	"Himachal Pradesh",	1),
+(5,	"Roma",	"MacCrann",	"Skill",	5678901234,	"rskill4@apple.com",	37,	380,	"Autumn Leaf",	"25483",	"11661",	"Huangjindong",	"Bihar",	1),
+(6,	"Nickie",	"Endle",	"Pulfer",	6789012345,	"npulfer5@mlb.com",	49,	5,	"Butterfield",	"923",	"13911",	"Tráº§n VÄƒn Thá»i"	,"Tamil Nadu",	1),
+(7,	"Flin",	"Lindenstrauss",	"York",	7890123456,	"fyork6@51.la",	77,	43,	"Carberry",	"1",	"11814",	"Umanâ€™",	"Chhattisgarh",	1),
+(8,	"Prudy",	"Ramage",	"Gallymore",	8901234567,	"pgallymore7@china.com.cn",	47,	10269,	"Eastwood",	"6",	"14502",	"NÄ«kÃªh",	"Uttar Pradesh",	1),
+(9,	"Gusta",	"Pennacci",	"Pimlock",	9012345678,	"gpimlock8@slashdot.org",	33,	5,	"Spenser",	"1657",	"12774",	"Wuxihe",	"Sikkim",	1),
+(10, "Hephzibah",	"Hoffmann",	"Matys",	1013456789,	"hmatys9@xrea.com",	32,	40916,	"Grayhawk",	"99",	"13148",	"Saint-Brieuc",	"Karnataka",	1);
+
+select*from vendor;
+insert into vendor
+(vendor_id ,vendor_name ,vendor_age ,vendor_email ,admin_id,phone_number)
+values
+(23,	"Mariel",	34,		"mscarasbrick0@omniture.com",	1,5551234567),
+(64,	"Curcio",	5,		"cthornewill1@google.com.br",	1,5559876543),
+(100,	"Starlin",	12,		"searngy2@friendfeed.com",	1,5558765432),
+(27,	"Broddie",	28,		"bfehners3@discuz.net",	1,5552345678),
+(80,	"Jaynell",	19,		"jtildesley4@symantec.com",	1,5553456789),
+(98,	"Zachary",	33,		"zaddis5@taobao.com",	1,5557890123),
+(92,	"Derron",	23,		"dkearsley6@about.com",	1,5558901234),
+(49,	"Leeanne",	22,		"ldooler7@nhs.uk",	1,5554567890),
+(60,	"Reagen",	35,		"rstanner8@shinystat.com",	1,5553210987),
+(22	,"Gwendolyn",	8,		"gnoar9@biblegateway.com",	1,5556789012);
+
+select*from shoppingorder;
+insert into shoppingorder
+(orderId, order_date,	delivery_address,	customer_id)
+values
+(1,	'2022-12-07',	"6 Saint Paul Avenue",	8),
+(2,	'2023-12-12',	"3 Mesta Court",	6),
+(3,	'2023-12-08',	"59093 Eggendart Street",	7),
+(4,	'2023-05-17',	"72 Vernon Terrace",	2),
+(5,	'2023-03-13',	"2148 Westport Place",	5),
+(6,	'2024-01-22',	"8 Mockingbird Place",	4),
+(7,	'2023-08-17',	"75 Moose Road"	,3),
+(8,	'2023-03-21',	"279 Portage Parkway",	9),
+(9,	'2023-04-24',	"35 Lotheville Point",	1),
+(10,	'2024-01-05',	"02 Morning Terrace",	10);
+
+select*from deliveryperson;
+insert into deliveryperson
+(person_id,	del_name,	del_speed,	phone_number,	orderId)
+values
+(1,	"Bonita",	4,	1234567809,	1),
+(2,	"Willie",	2,	2578666688,	2),
+(3,	"Joyan",	4,	3987098009,	3),
+(4,	"Ernie",	2,	4474658868,	4),
+(5,	"Horatia",	2,	5080868754,	5),
+(6,	"Mac",	5,	9697987778,	6),
+(7,	"Joy",	5,	7098767546,	7),
+(8,	"Silvano",	3,	8890767967,	8),
+(9,	"Brenden",	5,	9098657689,	9),
+(10,	"Jason",	1,	1009876789,	10);
+
+select*from authenticationcredentials;
+insert into authenticationcredentials
+(login_id,	passcode,	person_id	,customer_id,	admin_id, vendor_id)
+values
+(1,	"jP8/SSW5N?p0Y=?",	1,	1,	1,23),
+(2,	"bV5{J@2dB",	2,	2,	1,22),
+(3,	"wM7@+Cs`",	3,	3,	1,64),
+(4,	"kU7>}=qFU/T1RY",	4,	4,	1,100),
+(5,	"zH3|'3_RnP",	5,	5,	1,80),
+(6,	"nN3zYCD",	6,	6,	1,27),
+(7,	"lA9,LANtw*P7p(>",	7,	7,	1,49),
+(8,	"fM3*MmDWVpa",	8,	8,	1,60),
+(9,	"pS0~Hvp3=pG0!2\T",	9,	9,	1,98),
+(10, "qHR33yjhoi087", 10,10,1,92);
+
+select*from productcategory;
+insert into productcategory
+(category_id, category_name)
+values
+(1,	"Laptop"),
+(2,	"headphones"),
+(3,	"Tv"),
+(4,	"domestic electronics"),
+(5,	"watch"),
+(6	,"Camera"),
+(7,	"Speaker"),
+(8,	"Computer_parts"),
+(9,	"Microwave"),
+(10, "explorer_bag");
+
+select*from inventory;
+insert into inventory
+(product_quantity,	product_id, category_id)
+values
+(79,	101,1),
+(99,	102,2),
+(30,	103,3),
+(52,	104,4),
+(9,	105,5),
+(73,	106,6),
+(74,	107,7),
+(12,	108,8),
+(21,	109,9),
+(46,	110,10);
+
+select*from discount;
+insert into discount
+(discount_id	,discount_name,	discount_rate	,discount_description	,discount_start,	discount_end,	orderID,	admin_id)
+values
+(1,	"Coupon Code Discounts",	10,	"Streptopelia senegalensis",	'2023-04-08',	'2024-02-04',	1,	1),
+(2,	"Percentage Discounts",	17,	"Anitibyx armatus",	'2023-09-19',	'2023-04-03',	2,	1),
+(3,	"Flat Discounts",	24,	"Phaethon aethereus",	'2023-10-11',	'2024-02-01',	3,	1),
+(4,	"Free Shipping",	50,	"Macropus parryi",	'2024-07-01'	,'2023-10-10',	4,	1),
+(5,	"Bundle Discounts",	46,	"Nycticorax nycticorax",	'2023-06-24',	'2023-04-25',	5,	1),
+(6,	"First-Time Customer Discounts",	10,	"Marmota flaviventris",	'2023-03-11',	'2023-02-12',	6,	1),
+(7,	"Seasonal Discounts",	37,	"Equus hemionus",	'2023-09-08'	,'2023-07-03',	7,	1),
+(8,	"Coupon Code Discounts",	50,	"Eudyptula minor",	'2023-04-29','2023-09-05',	8,	1),
+(9,	"Percentage Discounts",	18,	"Odocoileus hemionus",	'2024-02-04'	,'2024-01-02',	9,	1),
+(10,	"Flat Discounts",	50,	"Lorythaixoides concolor",	'2023-12-17'	,'2023-11-03',	10,	1);
+
+select*from product;
+insert into product
+(product_id,	product_description,	product_name,	product_price,	category_id,	vendor_id)
+values
+
+ (101       , "High-performance laptop with SSD"     ,"TechMaster Pro Laptop" , 129999       , 1         , 23      ),
+ (102        , "Premium noise-canceling headphones"   ,"SilentBeats Headphones", 14995        , 2         , 64       ),
+ (103        , "Smart 4K UHD TV with HDR"             ,"VisionX Ultra TV "     , 79999        , 3         , 100       ),
+ (104        , "Stainless steel coffee maker"         ,"BrewMaster Elite"      , 6999         , 4         , 27       ),
+ (105        , "Fitness tracker with heart rate monitor",  "FitPulse Tracker "  , 4995         , 5         , 80       ),
+ (106        , "Professional DSLR camera"             ,"SnapShot Pro Camera"   , 119999       , 6         , 98      ),
+ (107        , "Portable Bluetooth speaker"           ,"SonicBoom Speaker "    , 7999         , 7         , 92      ),
+ (108        , "Wireless gaming mouse"                ,"GameMaster Mouse"      , 5995         , 8         , 49       ),
+ (109        , "Compact microwave oven"               ,"QuickHeat Microwave "  , 8999         , 9         , 60      ),
+ (110        , "Outdoor adventure backpack"           ,"TrekExplorer Backpack" , 12995        , 10         , 22       );
+
+
+
+
+
+select*from feedback;
+insert into feedback
+(feedback_id,	rating_value,	comments,	customer_id,	product_id)
+values
+(1,	5,	"Clear Lake Metroport",	1,101),
+(2,	10,	"Waterville Robert Lafleur Airport",	2,	102),
+(3,	10,	"Jiri Airport",	3,	103),
+(4,	5,	"Jingdezhen Airport",	4,	104),
+(5,	5,	"Grand Forks Air Force Base",	5,	105),
+(6,	9,	"Escuela Mariscal Sucre Airport",	6,	106),
+(7,	7,	"Johnston Atoll Airport",	7,	107),
+(8,	7,	"Laucala Island Airport",	8,	108),
+(9,	7,	"Manja Airport",	9,109),
+(10,	9,	"Campbeltown Airport",10,110);
+
+select*from shoppingcart;
+insert into shoppingcart
+(shopping_cart_id,	cartitem_quantity,	customer_id,	product_id)
+values
+(1,	25,	9,	101),
+(2,	12,	10,	102),
+(3,	66,	6,	103),
+(4,	4,	8,	104),
+(5,	99,	5,	105),
+(6,	85,	7,	106),
+(7,	80,	4,	107),
+(8,	21,	3,	108),
+(9,	38,	2,	109),
+(10,	28,	1,	110);
+
+select*from paymenttype;
+insert into paymenttype
+(payment_type_id, payment_name)
+values
+(1,	"Phone_Pe"),
+(2,	"Paytm"),
+(3, "Google_Pay"),
+(4,	"Apple_Pay"),
+(5,	"Credit_Card"),
+(6,	"Debit_Card"),
+(7,	"cash_on_delivery"),
+(8, "pay_later"),
+(9, "netbanking"),
+(10, "mobiKwik");
+
+
+
+
+
+
+select*from payment;
+insert into payment
+(payment_id, payment_amount ,expirydate,payment_type_id,customer_id)
+values
+(1,	9220,	'2023-07-11',	5,	2),
+(2,	8871,	'2023-02-11',	8,	3),
+(3,	4425,	'2023-09-03',	5,	5),
+(4	,1426,	'2023-07-10',	6,	9),
+(5	,743,	'2023-07-03',	9,	8),
+(6	,6751,	'2023-05-02',	8,	7),
+(7	,425,	'2023-06-03',	3,	6),
+(8	,7715,	'2023-06-10',	2,	4),
+(9	,4803,	'2023-09-05',	3,	1),
+(10	,3744,	'2023-07-12',	1,	10);
+
+
+
+
+
+select*from orderstatus;
+insert into orderstatus
+(order_id ,status1,customer_id ,vendor_id)
+values
+(1,	"delivered",	9,	22),
+(2,	"shipped",	10,	23),
+(3,	"order placed",	6,	27),
+(4,	"delivered",	8,	64),
+(5,	"shipped",	5,	100),
+(6,	"order placed",	7,	80),
+(7,	"delivered",	4,	49),
+(8,	"shipped",	3,	60),
+(9,	"order placed",	2,	98),
+(10,	"delivered",	1,	92);
+
+-- INDEX CREATION
+CREATE INDEX idx_customer_age ON customer(age);
+CREATE INDEX idx_customer_city ON customer(city);
+CREATE INDEX idx_delivery_speed ON DeliveryPerson(del_speed);
+CREATE INDEX idx_product_quantity ON Inventory(product_quantity);
+CREATE INDEX idx_discount_value ON Discount(discount_rate);
+CREATE INDEX idx_discount_expiry ON Discount(discount_end);
+CREATE INDEX idx_review_rating ON Feedback(rating_value);
+CREATE INDEX idx_product_price ON Product(product_price);
+CREATE INDEX idx_item_quantity_in_cart ON ShoppingCart(cartitem_quantity);
+CREATE INDEX idx_payment_amount ON Payment(payment_amount);
+
