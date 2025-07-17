@@ -1,4 +1,4 @@
-#Trigger 1: This trigger, named update_inventory_and_check_stock, is designed to automatically update the inventory table and perform a stock check whenever a new entry is made in the ShoppingCart table.
+##Trigger 1: This trigger, named update_inventory_and_check_stock, is designed to automatically update the inventory table and perform a stock check whenever a new entry is made in the ShoppingCart table.
 
 DELIMITER //
 
